@@ -19,17 +19,14 @@ export default function DashboardLayout({
     const checkAccess = async () => {
       const { user, role } = await getCurrentUserRole()
 
+      // No autenticado
       if (!user) {
         router.replace('/')
         return
       }
 
-      if (isAdminRole(role)) {
-        router.replace('/admin')
-        return
-      }
-
-      if (!isClientRole(role)) {
+      // Permitir admins y clientes
+      if (!isAdminRole(role) && !isClientRole(role)) {
         router.replace('/')
         return
       }
