@@ -1,9 +1,13 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { getCurrentUserRole, isAdminRole } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@supabase/supabase-js"
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export default function AdminPage() {
   const router = useRouter()
@@ -11,15 +15,26 @@ export default function AdminPage() {
 
   useEffect(() => {
     const checkAccess = async () => {
-      const { user, role } = await getCurrentUserRole()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
+      // No hay usuario
       if (!user) {
-        router.replace('/')
+        router.push("/")
         return
       }
 
-      if (!isAdminRole(role)) {
-        router.replace('/dashboard')
+      // Buscar perfil
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single()
+
+      // Si NO es admin
+      if (profile?.role !== "admin") {
+        router.push("/dashboard")
         return
       }
 
@@ -29,51 +44,24 @@ export default function AdminPage() {
     checkAccess()
   }, [router])
 
+  // Loading
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-black text-white">
+      <div className="flex items-center justify-center h-screen">
         Verificando acceso...
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black p-10 text-white">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-10 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold">Panel Admin</h1>
-            <p className="mt-2 text-zinc-400">Gestion interna CS360.vip</p>
-          </div>
+    <div className="p-10">
+      <h1 className="text-3xl font-bold">
+        Panel Admin CS360
+      </h1>
 
-          <button
-            onClick={async () => {
-              await supabase.auth.signOut()
-              router.replace('/')
-            }}
-            className="rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:opacity-90"
-          >
-            Cerrar sesion
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-            <h2 className="mb-2 text-lg font-semibold">Clientes</h2>
-            <p className="text-sm text-zinc-400">Gestion de clientes CS360</p>
-          </div>
-
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-            <h2 className="mb-2 text-lg font-semibold">Concierge</h2>
-            <p className="text-sm text-zinc-400">Servicios y coordinacion</p>
-          </div>
-
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-            <h2 className="mb-2 text-lg font-semibold">Vehiculos</h2>
-            <p className="text-sm text-zinc-400">Administracion automotriz</p>
-          </div>
-        </div>
-      </div>
+      <p className="mt-4 text-gray-500">
+        Administración y gestión interna
+      </p>
     </div>
   )
 }
