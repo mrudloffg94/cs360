@@ -2,14 +2,18 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
+
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -17,82 +21,80 @@ export default function LoginPage() {
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setIsLoading(true)
-  setError('')
+    e.preventDefault()
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+    setIsLoading(true)
+    setError('')
 
-  if (error || !data.user) {
-    setError("Credenciales incorrectas")
+    // Login Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    // Error login
+    if (error || !data.user) {
+      setError('Credenciales incorrectas')
+      setIsLoading(false)
+      return
+    }
+
+    // Buscar rol usuario
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
+
+    // Redirección por rol
+    if (profile?.role === 'admin') {
+      router.push('/admin')
+    } else {
+      router.push('/dashboard')
+    }
+
     setIsLoading(false)
-    return
   }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", data.user.id)
-    .single()
-
-  if (profile?.role === "admin") {
-   router.push('/admin')
-  } else {
-    router.push("/dashboard")
-  }
-
-  setIsLoading(false)
-}
-
-
-// buscar rol en profiles
-const { data: profile } = await supabase
-  .from("profiles")
-  .select("role")
-  .eq("id", data.user.id)
-  .single()
-
-// redirección por rol
-if (profile?.role === "admin") {
-  router.push("/admin")
-} else {
-  router.push("/dashboard")
-}
-
-setIsLoading(false)
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      {/* Subtle gradient background */}
+      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/20 pointer-events-none" />
-      
+
       <div className="w-full max-w-md relative z-10">
-        {/* Logo and Title */}
+        {/* Logo */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center mb-6">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 flex items-center justify-center">
-              <span className="text-2xl font-bold text-foreground">CS</span>
+              <span className="text-2xl font-bold text-foreground">
+                CS
+              </span>
             </div>
           </div>
+
           <h1 className="text-3xl font-semibold text-foreground tracking-tight">
             CS360<span className="text-accent">.vip</span>
           </h1>
+
           <p className="text-muted-foreground mt-3 text-base">
             Accede a tu ecosistema automotriz
           </p>
         </div>
 
-        {/* Login Card */}
+        {/* Card */}
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-2xl">
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-medium text-foreground"
+                >
                   Correo electrónico
                 </Label>
+
                 <Input
                   id="email"
                   type="email"
@@ -105,10 +107,15 @@ setIsLoading(false)
                 />
               </div>
 
+              {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                <Label
+                  htmlFor="password"
+                  className="text-sm font-medium text-foreground"
+                >
                   Contraseña
                 </Label>
+
                 <div className="relative">
                   <Input
                     id="password"
@@ -120,6 +127,7 @@ setIsLoading(false)
                     disabled={isLoading}
                     autoComplete="current-password"
                   />
+
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -135,10 +143,14 @@ setIsLoading(false)
                 </div>
               </div>
 
+              {/* Error */}
               {error && (
-                <p className="text-sm text-destructive">{error}</p>
+                <p className="text-sm text-destructive">
+                  {error}
+                </p>
               )}
 
+              {/* Button */}
               <Button
                 type="submit"
                 className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
@@ -155,6 +167,7 @@ setIsLoading(false)
               </Button>
             </form>
 
+            {/* Forgot password */}
             <div className="mt-6 text-center">
               <a
                 href="#"
@@ -171,8 +184,9 @@ setIsLoading(false)
           <p className="text-sm text-muted-foreground">
             Plataforma exclusiva para clientes CS360
           </p>
+
           <p className="text-xs text-muted-foreground/60 mt-2">
-            © 2024 CS360.vip — Todos los derechos reservados
+            © 2026 CS360.vip — Todos los derechos reservados
           </p>
         </div>
       </div>
