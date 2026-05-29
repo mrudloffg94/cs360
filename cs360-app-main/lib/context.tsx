@@ -75,6 +75,82 @@ export function AppProvider({ children }: { children: ReactNode }) {
         concierge: profile.concierge || '',
         accountStatus: 'Activo',
       })
+
+      const [
+        vehiclesResult,
+        maintenancesResult,
+        documentsResult,
+        requestsResult,
+      ] = await Promise.all([
+        supabase.from('vehicles').select('*').eq('user_id', authUser.id),
+        supabase.from('maintenances').select('*').eq('user_id', authUser.id),
+        supabase.from('documents').select('*').eq('user_id', authUser.id),
+        supabase.from('requests').select('*').eq('user_id', authUser.id),
+      ])
+
+      if (vehiclesResult.data) {
+        setVehicles(
+          vehiclesResult.data.map((vehicle: any) => ({
+            id: vehicle.id,
+            brand: vehicle.brand,
+            model: vehicle.model,
+            year: vehicle.year,
+            plate: vehicle.plate,
+            status: vehicle.status,
+            image: vehicle.image,
+            vin: vehicle.vin,
+            color: vehicle.color,
+            mileage: vehicle.mileage,
+            lastService: vehicle.last_service,
+            nextService: vehicle.next_service,
+          }))
+        )
+      }
+
+      if (maintenancesResult.data) {
+        setMaintenances(
+          maintenancesResult.data.map((maintenance: any) => ({
+            id: maintenance.id,
+            vehicleId: maintenance.vehicle_id,
+            type: maintenance.type,
+            date: maintenance.date,
+            status: maintenance.status,
+            cost: maintenance.cost,
+            description: maintenance.description,
+            provider: maintenance.provider,
+          }))
+        )
+      }
+
+      if (documentsResult.data) {
+        setDocuments(
+          documentsResult.data.map((document: any) => ({
+            id: document.id,
+            vehicleId: document.vehicle_id,
+            type: document.type,
+            status: document.status,
+            expirationDate: document.expiration_date,
+            documentUrl: document.document_url,
+          }))
+        )
+      }
+
+      if (requestsResult.data) {
+        setRequests(
+          requestsResult.data.map((request: any) => ({
+            id: request.id,
+            userId: request.user_id,
+            vehicleId: request.vehicle_id,
+            type: request.type,
+            status: request.status,
+            title: request.title,
+            description: request.description,
+            createdAt: request.created_at,
+            updatedAt: request.updated_at,
+            priority: request.priority,
+          }))
+        )
+      }
     }
 
     loadUser()
