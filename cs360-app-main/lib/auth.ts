@@ -16,7 +16,7 @@ export function isClientRole(role: string | null | undefined) {
 }
 
 export function routeForRole(role: string) {
-  if (isAdminRole(role)) return '/admin'
+  if (isAdminRole(role)) return '/dashboard/admin'
   if (isClientRole(role)) return '/dashboard'
   return '/'
 }

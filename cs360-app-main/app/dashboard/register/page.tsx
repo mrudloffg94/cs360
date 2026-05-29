@@ -4,22 +4,24 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const supabase = createClient()
   const router = useRouter()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
 
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     })
@@ -30,17 +32,37 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/app')
+    if (data.user) {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        email: data.user.email,
+        full_name: fullName,
+        role: 'client',
+        plan: 'Essential',
+      })
+    }
+
+    router.push('/dashboard')
     router.refresh()
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center">
       <form
-        onSubmit={handleLogin}
+        onSubmit={handleRegister}
         className="w-full max-w-sm space-y-4 border rounded-xl p-6"
       >
-        <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
+        <h1 className="text-2xl font-semibold">
+          Crear cuenta
+        </h1>
+
+        <input
+          type="text"
+          placeholder="Nombre completo"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          className="w-full border rounded-lg px-3 py-2"
+        />
 
         <input
           type="email"
@@ -59,7 +81,9 @@ export default function LoginPage() {
         />
 
         {error && (
-          <p className="text-red-500 text-sm">{error}</p>
+          <p className="text-red-500 text-sm">
+            {error}
+          </p>
         )}
 
         <button
@@ -67,7 +91,7 @@ export default function LoginPage() {
           disabled={loading}
           className="w-full rounded-lg bg-black text-white py-2"
         >
-          {loading ? 'Ingresando...' : 'Ingresar'}
+          {loading ? 'Creando cuenta...' : 'Crear cuenta'}
         </button>
       </form>
     </div>

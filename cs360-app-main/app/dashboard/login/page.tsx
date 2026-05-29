@@ -1,28 +1,25 @@
-```tsx
 'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const supabase = createClient()
   const router = useRouter()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
-
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleRegister(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
 
     setLoading(true)
     setError('')
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -33,37 +30,17 @@ export default function RegisterPage() {
       return
     }
 
-    if (data.user) {
-      await supabase.from('profiles').upsert({
-        id: data.user.id,
-        email: data.user.email,
-        full_name: fullName,
-        role: 'client',
-        plan: 'Essential',
-      })
-    }
-
-    router.push('/app')
+    router.push('/dashboard')
     router.refresh()
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center">
       <form
-        onSubmit={handleRegister}
+        onSubmit={handleLogin}
         className="w-full max-w-sm space-y-4 border rounded-xl p-6"
       >
-        <h1 className="text-2xl font-semibold">
-          Crear cuenta
-        </h1>
-
-        <input
-          type="text"
-          placeholder="Nombre completo"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          className="w-full border rounded-lg px-3 py-2"
-        />
+        <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
 
         <input
           type="email"
@@ -82,9 +59,7 @@ export default function RegisterPage() {
         />
 
         {error && (
-          <p className="text-red-500 text-sm">
-            {error}
-          </p>
+          <p className="text-red-500 text-sm">{error}</p>
         )}
 
         <button
@@ -92,10 +67,9 @@ export default function RegisterPage() {
           disabled={loading}
           className="w-full rounded-lg bg-black text-white py-2"
         >
-          {loading ? 'Creando cuenta...' : 'Crear cuenta'}
+          {loading ? 'Ingresando...' : 'Ingresar'}
         </button>
       </form>
     </div>
   )
 }
-```

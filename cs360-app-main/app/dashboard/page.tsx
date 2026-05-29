@@ -6,21 +6,8 @@ import { useRouter } from "next/navigation"
 
 const supabase = createClient()
 
-const [user, setUser] = useState<any>(null)
-
-useEffect(() => {
-  async function getUser() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    setUser(user)
-  }
-
-  getUser()
-}, [])
-
 export default function AdminPage() {
+  const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 

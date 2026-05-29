@@ -1,4 +1,3 @@
-```tsx
 'use client'
 
 import { useState } from 'react'
@@ -43,7 +42,7 @@ export default function RegisterPage() {
       })
     }
 
-    router.push('/app')
+    router.push('/dashboard')
     router.refresh()
   }
 
@@ -98,4 +97,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-```
